@@ -21,6 +21,7 @@ var (
 	where string
 	to    string
 	wg    = sync.WaitGroup{}
+	HOME  string
 )
 
 type YTB struct {
@@ -45,7 +46,7 @@ func main() {
 	to, task_position := getConfig(where)
 
 	if len(to) == 0 {
-		to = "~/Desktop/%(title)s.%(ext)s"
+		to = HOME + "/Desktop/%(title)s.%(ext)s"
 	}
 
 	if task_position == "" {
@@ -101,10 +102,11 @@ func download(to, url, task_position string) {
 		fmt.Println("start downloading ===> " + url)
 	}
 
-	cmd := exec.Command("youtube-dl", "--include-ads", "-i", "-c", "-o", to, url)
+	cmd := exec.Command("youtube-dl", "-i", "-c", "-o", to, url)
 	err := cmd.Run()
 	if err != nil {
 		log.Printf("download %s error:%s\n", url, err)
+		return
 	}
 	if len(url) > 0 {
 		fmt.Println(url + ` ===> 100% downloaded`)

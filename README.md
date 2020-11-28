@@ -8,7 +8,9 @@ This tool is based on [youtube-dl](https://github.com/ytdl-org/youtube-dl), to u
 1, downloading ytb tool
 
 ```bash
-go install github.com/scott-x/ytb
+git clone git@github.com:scott-x/ytb.git
+cd ytb
+go run main.go
 ```
 
 2, configuration
