@@ -15,10 +15,10 @@ go install github.com/scott-x/ytb
 
 ```bash
 mkdir ~/.ytb
-touc ~/.ytb/youtube-dl.json
+touch ~/.ytb/youtube-dl.json
 ```
 
-`/youtube-dl.json` has 2 properties as shown below:
+`youtube-dl.json` has 2 properties as shown below:
 
 ```json
 {
