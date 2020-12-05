@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2020-11-28 06:19:58
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2020-12-05 12:54:24
+* @Last Modified time: 2020-12-05 15:57:36
  */
 package main
 
@@ -125,6 +125,7 @@ func download(line, task_position, download_folder string) {
 	}
 
 	fmt.Println("start downloading ===> " + url)
+	// getFormat(url)
 	cmd := exec.Command("youtube-dl", "-i", "-c", "-o", to, url)
 	err := cmd.Run()
 	if err != nil {
@@ -167,6 +168,11 @@ func setProxy() {
 		log.Printf("$https_proxy has been set to http://127.0.0.1:1024\n")
 	}
 
+}
+
+func getFormat(url string) string {
+	exec.Command("youtube-dl", "--get-format", url).Run()
+	return ""
 }
 
 func getConfig(configfile string) (string, string) {
