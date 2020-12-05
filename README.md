@@ -5,15 +5,7 @@ This tool is based on [youtube-dl](https://github.com/ytdl-org/youtube-dl), to u
 
 ### how to use?
 
-1, downloading ytb tool
-
-```bash
-git clone git@github.com:scott-x/ytb.git
-cd ytb
-go run main.go
-```
-
-2, configuration
+1, custom the configuration
 
 ```bash
 mkdir ~/.ytb
@@ -36,6 +28,14 @@ touch ~/.ytb/youtube-dl.json
 For Example:
 
 ![](./task.png)
+
+2, downloading ytb tool & run
+
+```bash
+git clone git@github.com:scott-x/ytb.git
+cd ytb
+go run main.go
+```
 
 ```bash
 ~/go/src/github.com/scott-x/ytb(main*) » go run main.go                                       apple@iMac-52
