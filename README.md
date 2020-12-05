@@ -24,12 +24,12 @@ touch ~/.ytb/youtube-dl.json
 
 ```json
 {
-	"to":"~/Desktop/%(title)s.%(ext)s",
-	"task_position":"/Users/scottxiong/Desktop/task.txt"
+	"download_folder":"/Users/apple/Desktop", 
+	"task_position":"/Users/apple/Desktop/task.txt" 
 }
 ```
 
-- `to`: `to` indicates where these video will go to 
+- `download_folder`: `download_folder` indicates the directory where these video will go to 
 - `task_position`: before downloading, list the download youtube url line by line.
 
 
@@ -38,15 +38,18 @@ For Example:
 ![](./task.png)
 
 ```bash
-$ go run main.go
-set http/https proxy...
-start downloading ===> https://www.youtube.com/watch?v=euf7BCpWZgA
-start downloading ===> https://www.youtube.com/watch?v=BkPMZDgfH4M
-start downloading ===> https://www.youtube.com/watch?v=qXlS-X0ddsA
-https://www.youtube.com/watch?v=euf7BCpWZgA ===> 100% downloaded
-2020/11/28 12:06:26 https://www.youtube.com/watch?v=euf7BCpWZgA is deleted from /Users/scottxiong/Desktop/task.txt
-https://www.youtube.com/watch?v=qXlS-X0ddsA ===> 100% downloaded
-2020/11/28 12:06:54 https://www.youtube.com/watch?v=qXlS-X0ddsA is deleted from /Users/scottxiong/Desktop/task.txt
-https://www.youtube.com/watch?v=BkPMZDgfH4M ===> 100% downloaded
-2020/11/28 12:12:31 https://www.youtube.com/watch?v=BkPMZDgfH4M is deleted from /Users/scottxiong/Desktop/task.txt
+~/go/src/github.com/scott-x/ytb(main*) » go run main.go                                       apple@iMac-52
+---------------- parse configuration ----------------
+download folder: /Users/apple/Desktop
+task file: /Users/apple/Desktop/task.txt
+---------------- checking http/https proxy ----------------
+2020/12/05 13:02:48 $http_proxy has been set to http://127.0.0.1:1024
+2020/12/05 13:02:48 $https_proxy has been set to http://127.0.0.1:1024
+2020/12/05 13:02:48 creating folder: /Users/apple/Desktop/a/b
+start downloading ===> https://www.youtube.com/watch?v=sBS22HtYEg8
+start downloading ===> https://www.youtube.com/watch?v=Ttus8XGK6Xw
+https://www.youtube.com/watch?v=sBS22HtYEg8 ===> 100% downloaded
+2020/12/05 13:03:51 https://www.youtube.com/watch?v=sBS22HtYEg8 is deleted from /Users/apple/Desktop/task.txt
+https://www.youtube.com/watch?v=Ttus8XGK6Xw ===> 100% downloaded
+2020/12/05 13:04:32 https://www.youtube.com/watch?v=Ttus8XGK6Xw is deleted from /Users/apple/Desktop/task.txt
 ```

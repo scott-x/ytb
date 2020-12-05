@@ -2,31 +2,33 @@
 * @Author: scottxiong
 * @Date:   2020-11-28 06:19:58
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2020-11-28 06:56:28
+* @Last Modified time: 2020-12-05 12:54:24
  */
 package main
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/scott-x/gutils/fs"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 )
 
 var (
-	where string
-	to    string
-	wg    = sync.WaitGroup{}
-	HOME  string
+	configfile      string
+	download_folder string
+	wg              = sync.WaitGroup{}
+	HOME            string
 )
 
 type YTB struct {
-	To            string `json:"to"`
-	Task_position string `json:"task_position"`
+	Download_folder string `json:"download_folder"`
+	Task_position   string `json:"task_position"`
 }
 
 func init() {
@@ -35,18 +37,18 @@ func init() {
 		log.Println("$HOME should be set")
 		return
 	}
-	where = HOME + "/.ytb/youtube-dl.json"
+	configfile = HOME + "/.ytb/youtube-dl.json"
 }
 
 func main() {
-	if !isFileExist(where) {
-		log.Println("configuration file " + where + " not found, could you please check")
+	if !isFileExist(configfile) {
+		log.Println("configuration file " + configfile + " not found, could you please check?")
 		return
 	}
-	to, task_position := getConfig(where)
+	download_folder, task_position := getConfig(configfile)
 
-	if len(to) == 0 {
-		to = HOME + "/Desktop/%(title)s.%(ext)s"
+	if download_folder == "" {
+		download_folder = HOME + "/Desktop"
 	}
 
 	if task_position == "" {
@@ -54,7 +56,10 @@ func main() {
 		return
 	}
 
-	//get urls
+	fmt.Println("---------------- parse configuration ----------------")
+	fmt.Printf("download folder: %s\n", download_folder)
+	fmt.Printf("task file: %s\n", task_position)
+	//get lines
 	content, err := ioutil.ReadFile(task_position)
 	if err != nil {
 		panic(err)
@@ -65,54 +70,72 @@ func main() {
 		return
 	}
 	con := strings.Trim(string(content), "\n")
-	urls := strings.Split(con, "\n")
+	lines := strings.Split(con, "\n")
 
 	//set proxy
 	setProxy()
 
-	for _, url := range urls {
-		wg.Add(1)
-		// download(to, "https://www.youtube.com/watch?v=C6FhEonS-SU")
-		go download(to, url, task_position)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) > 0 {
+			wg.Add(1)
+			go download(line, task_position, download_folder)
+		}
 	}
 
 	wg.Wait()
 
 }
 
-func deleteFinishedUrl(task_position, url string) {
+func deleteFinishedUrl(task_position, line, url string) {
 	bs, err := ioutil.ReadFile(task_position)
 	if err != nil {
 		panic(err)
 	}
-	content := strings.ReplaceAll(string(bs), url, "")
+	content := strings.ReplaceAll(string(bs), line, "")
+
 	err = ioutil.WriteFile(task_position, []byte(content), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(url) > 0 {
-		log.Println(url + " is deleted from " + task_position)
-	}
+
+	log.Println(url + " is deleted from " + task_position)
 }
 
-func download(to, url, task_position string) {
+func download(line, task_position, download_folder string) {
 	defer wg.Done()
 
-	if len(url) > 0 {
-		fmt.Println("start downloading ===> " + url)
+	var url string = ""
+	var to string = ""
+
+	line = strings.TrimSpace(line)
+
+	if strings.Contains(line, " ") {
+		arr := strings.Split(line, " ")
+		url = arr[0]
+		d1 := path.Join(download_folder, arr[len(arr)-1])
+		if !fs.IsExist(d1) {
+			log.Printf("creating folder: %s\n", d1)
+			fs.CreateDirIfNotExist(d1)
+		}
+		to = d1 + "/%(title)s.%(ext)s"
+	} else {
+		url = line
+		to = download_folder + "/%(title)s.%(ext)s"
 	}
 
+	fmt.Println("start downloading ===> " + url)
 	cmd := exec.Command("youtube-dl", "-i", "-c", "-o", to, url)
 	err := cmd.Run()
 	if err != nil {
 		log.Printf("download %s error:%s\n", url, err)
 		return
 	}
-	if len(url) > 0 {
-		fmt.Println(url + ` ===> 100% downloaded`)
-	}
 
-	deleteFinishedUrl(task_position, url)
+	fmt.Println(url + ` ===> 100% downloaded`)
+
+	deleteFinishedUrl(task_position, line, url)
+
 }
 
 func isFileExist(name string) bool {
@@ -125,19 +148,29 @@ func isFileExist(name string) bool {
 }
 
 func setProxy() {
-	fmt.Println("set http/https proxy...")
-	err := os.Setenv("http_proxy", "http://127.0.0.1:1024")
-	if err != nil {
-		log.Printf("set $http_proxy error:%s", err)
+	fmt.Println("---------------- checking http/https proxy ----------------")
+	_, flag := os.LookupEnv("http_proxy")
+	if !flag {
+		err := os.Setenv("http_proxy", "http://127.0.0.1:1024")
+		if err != nil {
+			log.Printf("set $http_proxy error:%s", err)
+		}
+		log.Printf("$http_proxy has been set to http://127.0.0.1:1024\n")
 	}
-	err = os.Setenv("https_proxy", "http://127.0.0.1:1024")
-	if err != nil {
-		log.Printf("set $https_proxy error:%s", err)
+
+	_, flag = os.LookupEnv("https_proxy")
+	if !flag {
+		err := os.Setenv("https_proxy", "http://127.0.0.1:1024")
+		if err != nil {
+			log.Printf("set $https_proxy error:%s", err)
+		}
+		log.Printf("$https_proxy has been set to http://127.0.0.1:1024\n")
 	}
+
 }
 
-func getConfig(where string) (string, string) {
-	bs, err := ioutil.ReadFile(where)
+func getConfig(configfile string) (string, string) {
+	bs, err := ioutil.ReadFile(configfile)
 	if err != nil {
 		panic(err)
 	}
@@ -147,5 +180,5 @@ func getConfig(where string) (string, string) {
 	if err != nil {
 		panic(err)
 	}
-	return ytb.To, ytb.Task_position
+	return ytb.Download_folder, ytb.Task_position
 }
