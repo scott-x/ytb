@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2020-11-28 06:19:58
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2020-12-05 15:57:36
+* @Last Modified time: 2020-12-07 11:30:47
  */
 package main
 
@@ -77,9 +77,16 @@ func main() {
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+
+		//playlist will run with sync
 		if len(line) > 0 {
-			wg.Add(1)
-			go download(line, task_position, download_folder)
+			//if too many tasks run at the same time, it will be stuck or panic error
+			if strings.Contains(line, "playlist") {
+				download(line, task_position, download_folder)
+			} else {
+				wg.Add(1)
+				go download(line, task_position, download_folder)
+			}
 		}
 	}
 
